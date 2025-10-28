@@ -1,4 +1,4 @@
-package com.ecole.covoiturage.plateformecovoiturage;
+package com.ecole.covoiturage;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

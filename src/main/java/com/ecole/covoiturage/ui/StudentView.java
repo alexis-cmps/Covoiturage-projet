@@ -1,6 +1,6 @@
 package com.ecole.covoiturage.ui;
 
-import com.ecole.covoiturage.Student;
+import com.ecole.covoiturage.entity.Student;
 import com.ecole.covoiturage.repository.StudentRepository;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
