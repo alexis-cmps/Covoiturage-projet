@@ -1,5 +1,6 @@
 package com.ecole.covoiturage.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,7 @@ public class Trajet {
     @JoinColumn(name = "conducteur_id")
     private Student conducteur;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "trajet", cascade = CascadeType.ALL)
     private List<Reservation> reservations;
 }

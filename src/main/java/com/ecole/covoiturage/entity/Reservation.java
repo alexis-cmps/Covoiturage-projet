@@ -18,6 +18,8 @@ public class Reservation {
 
     private LocalDateTime dateReservation;
 
+    private String statut; // PENDING, CONFIRMED, CANCELLED
+
     @ManyToOne
     @JoinColumn(name = "trajet_id")
     private Trajet trajet;

@@ -1,5 +1,6 @@
 package com.ecole.covoiturage.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,14 +20,23 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
-    // Un étudiant peut être conducteur de plusieurs trajets
+    @JsonIgnore
+    @Column(nullable = false)
+    private String password;
+
+    // Un etudiant peut etre conducteur de plusieurs trajets
+    @JsonIgnore
     @OneToMany(mappedBy = "conducteur", cascade = CascadeType.ALL)
     private List<Trajet> trajets;
 
-    // Un étudiant peut avoir plusieurs réservations (en tant que passager)
+    // Un etudiant peut avoir plusieurs reservations (en tant que passager)
+    @JsonIgnore
     @OneToMany(mappedBy = "passager", cascade = CascadeType.ALL)
     private List<Reservation> reservations;
 
