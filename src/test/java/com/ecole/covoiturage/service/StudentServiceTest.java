@@ -2,6 +2,7 @@ package com.ecole.covoiturage.service;
 
 import com.ecole.covoiturage.entity.Student;
 import com.ecole.covoiturage.repository.StudentRepository;
+import io.micrometer.core.instrument.Counter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,11 +30,14 @@ class StudentServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private Counter studentRegistrationCounter;
+
     private StudentService service;
 
     @BeforeEach
     void setUp() {
-        service = new StudentService(repository, passwordEncoder);
+        service = new StudentService(repository, passwordEncoder, studentRegistrationCounter);
     }
 
     @Test
@@ -42,8 +46,7 @@ class StudentServiceTest {
         // given
         when(repository.findAll()).thenReturn(List.of(
                 new Student(1L, "Alexis", "alexis@etu.fr"),
-                new Student(2L, "Marie", "marie@etu.fr")
-        ));
+                new Student(2L, "Marie", "marie@etu.fr")));
 
         // when
         List<Student> result = service.findAll();

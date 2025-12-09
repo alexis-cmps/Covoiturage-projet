@@ -2,6 +2,8 @@ package com.ecole.covoiturage.service;
 
 import com.ecole.covoiturage.entity.Trajet;
 import com.ecole.covoiturage.repository.TrajetRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,9 +14,15 @@ import java.util.Optional;
 public class TrajetService {
 
     private final TrajetRepository repository;
+    private final Counter trajetCreatedCounter;
+    private final Timer trajetSearchTimer;
 
-    public TrajetService(TrajetRepository repository) {
+    public TrajetService(TrajetRepository repository,
+            Counter trajetCreatedCounter,
+            Timer trajetSearchTimer) {
         this.repository = repository;
+        this.trajetCreatedCounter = trajetCreatedCounter;
+        this.trajetSearchTimer = trajetSearchTimer;
     }
 
     public List<Trajet> findAll() {
@@ -28,7 +36,12 @@ public class TrajetService {
     public Trajet save(Trajet trajet) {
         // Validation cote serveur
         validateTrajet(trajet);
-        return repository.save(trajet);
+        Trajet saved = repository.save(trajet);
+
+        // Incrémenter le compteur de trajets créés
+        trajetCreatedCounter.increment();
+
+        return saved;
     }
 
     private void validateTrajet(Trajet trajet) {
@@ -57,7 +70,9 @@ public class TrajetService {
     }
 
     public List<Trajet> findByDepartAndDestination(String depart, String destination) {
-        return repository.findByDepartContainingIgnoreCaseAndDestinationContainingIgnoreCase(depart, destination);
+        // Mesurer le temps de recherche
+        return trajetSearchTimer.record(() -> repository
+                .findByDepartContainingIgnoreCaseAndDestinationContainingIgnoreCase(depart, destination));
     }
 
     public List<Trajet> findByConducteur(Long conducteurId) {

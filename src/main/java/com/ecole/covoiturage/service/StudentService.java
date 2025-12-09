@@ -2,6 +2,7 @@ package com.ecole.covoiturage.service;
 
 import com.ecole.covoiturage.entity.Student;
 import com.ecole.covoiturage.repository.StudentRepository;
+import io.micrometer.core.instrument.Counter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -12,10 +13,14 @@ public class StudentService {
 
     private final StudentRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private final Counter userRegisteredCounter;
 
-    public StudentService(StudentRepository repository, PasswordEncoder passwordEncoder) {
+    public StudentService(StudentRepository repository,
+            PasswordEncoder passwordEncoder,
+            Counter userRegisteredCounter) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.userRegisteredCounter = userRegisteredCounter;
     }
 
     public List<Student> findAll() {
@@ -59,7 +64,12 @@ public class StudentService {
         student.setName(name.trim());
         student.setEmail(email.trim().toLowerCase());
         student.setPassword(passwordEncoder.encode(password));
-        return repository.save(student);
+        Student saved = repository.save(student);
+
+        // Incrémenter le compteur d'utilisateurs inscrits
+        userRegisteredCounter.increment();
+
+        return saved;
     }
 
     public Optional<Student> authenticate(String email, String rawPassword) {

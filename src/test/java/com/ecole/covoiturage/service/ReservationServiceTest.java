@@ -4,6 +4,7 @@ import com.ecole.covoiturage.entity.Reservation;
 import com.ecole.covoiturage.entity.Student;
 import com.ecole.covoiturage.entity.Trajet;
 import com.ecole.covoiturage.repository.ReservationRepository;
+import io.micrometer.core.instrument.Counter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class ReservationServiceTest {
     @Mock
     private ReservationRepository repository;
 
+    @Mock
+    private Counter reservationCounter;
+
     private ReservationService service;
 
     private Student conducteur;
@@ -35,7 +39,7 @@ class ReservationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ReservationService(repository);
+        service = new ReservationService(repository, reservationCounter);
 
         conducteur = new Student();
         conducteur.setId(1L);

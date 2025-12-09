@@ -1,15 +1,9 @@
 package com.ecole.covoiturage.dto;
 
-import lombok.*;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class StudentRegistrationDTO {
 
     @NotBlank(message = "Le nom est obligatoire")
@@ -23,5 +17,39 @@ public class StudentRegistrationDTO {
     @NotBlank(message = "Le mot de passe est obligatoire")
     @Size(min = 6, max = 100, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String password;
-}
 
+    public StudentRegistrationDTO() {
+    }
+
+    public StudentRegistrationDTO(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
+
+    // Getters
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    // Setters
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}

@@ -1,4 +1,4 @@
-import 'Frontend/generated/jar-resources/copilot/copilot.js';
+import 'Frontend/generated/jar-resources/copilot.js';
 // @ts-ignore
 if (import.meta.hot) {
   // @ts-ignore
@@ -13,6 +13,7 @@ if (import.meta.hot) {
 import '@vaadin/vertical-layout/theme/lumo/vaadin-vertical-layout.js';
 import '@vaadin/horizontal-layout/theme/lumo/vaadin-horizontal-layout.js';
 import '@vaadin/context-menu/theme/lumo/vaadin-context-menu.js';
+import '@vaadin/checkbox/theme/lumo/vaadin-checkbox.js';
 import '@vaadin/text-field/theme/lumo/vaadin-text-field.js';
 import '@vaadin/text-area/theme/lumo/vaadin-text-area.js';
 import '@vaadin/menu-bar/theme/lumo/vaadin-menu-bar.js';
@@ -25,6 +26,8 @@ import '@vaadin/list-box/theme/lumo/vaadin-list-box.js';
 import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
 import '@vaadin/item/theme/lumo/vaadin-item.js';
 import '@vaadin/dialog/theme/lumo/vaadin-dialog.js';
+import '@vaadin/multi-select-combo-box/theme/lumo/vaadin-multi-select-combo-box.js';
+import '@vaadin/radio-group/theme/lumo/vaadin-radio-group.js';
 import '@vaadin/icons/vaadin-iconset.js';
 import '@vaadin/icon/vaadin-icon.js';
 import './vaadin-featureflags.js';
@@ -33,3 +36,9 @@ import './index';
 
 import './vaadin-react.js';
 import 'Frontend/generated/jar-resources/vaadin-dev-tools/vaadin-dev-tools.js';
+
+import { Outlet } from 'react-router-dom';
+(window as any).Vaadin ??= {};
+(window as any).Vaadin.copilot ??= {};
+(window as any).Vaadin.copilot._ref ??= {};
+(window as any).Vaadin.copilot._ref.Outlet = Outlet;

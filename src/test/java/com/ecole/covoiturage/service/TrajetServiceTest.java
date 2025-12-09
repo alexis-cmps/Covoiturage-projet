@@ -3,6 +3,8 @@ package com.ecole.covoiturage.service;
 import com.ecole.covoiturage.entity.Student;
 import com.ecole.covoiturage.entity.Trajet;
 import com.ecole.covoiturage.repository.TrajetRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,12 @@ class TrajetServiceTest {
     @Mock
     private TrajetRepository repository;
 
+    @Mock
+    private Counter trajetCreationCounter;
+
+    @Mock
+    private Timer trajetSearchTimer;
+
     private TrajetService service;
 
     private Student conducteur;
@@ -33,7 +41,7 @@ class TrajetServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TrajetService(repository);
+        service = new TrajetService(repository, trajetCreationCounter, trajetSearchTimer);
 
         conducteur = new Student();
         conducteur.setId(1L);
