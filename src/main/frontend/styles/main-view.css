@@ -1,0 +1,31 @@
+/* CSS simplifié pour éviter les problèmes d'affichage */
+
+/* Styles de base */
+* {
+    box-sizing: border-box;
+}
+
+/* Effets hover simples pour les boutons */
+vaadin-button:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+/* Ombres légères pour les cartes */
+.benefit-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Responsive basique */
+@media (max-width: 768px) {
+    vaadin-horizontal-layout {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    vaadin-vertical-layout h1 {
+        font-size: 2rem !important;
+    }
+}

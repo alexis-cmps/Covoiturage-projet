@@ -12,7 +12,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
-@Route(value = "", layout = MainLayout.class)
+@Route(value = "old-home", layout = MainLayout.class)
 @AnonymousAllowed
 public class HomeView extends VerticalLayout {
 
@@ -31,10 +31,10 @@ public class HomeView extends VerticalLayout {
         cards.setWidthFull();
         cards.setJustifyContentMode(JustifyContentMode.CENTER);
         cards.add(
-            createFeatureCard(VaadinIcon.CAR, "Trajets disponibles", "Trouvez un trajet près de chez vous", "#667eea"),
-            createFeatureCard(VaadinIcon.USERS, "Communauté", "Rejoignez des milliers d'étudiants", "#764ba2"),
-            createFeatureCard(VaadinIcon.MONEY, "Économique", "Partagez les frais de transport", "#f093fb")
-        );
+                createFeatureCard(VaadinIcon.CAR, "Trajets disponibles", "Trouvez un trajet près de chez vous",
+                        "#667eea"),
+                createFeatureCard(VaadinIcon.USERS, "Communauté", "Rejoignez des milliers d'étudiants", "#764ba2"),
+                createFeatureCard(VaadinIcon.MONEY, "Économique", "Partagez les frais de transport", "#f093fb"));
 
         add(title, description, cards);
     }
@@ -43,13 +43,13 @@ public class HomeView extends VerticalLayout {
         Div card = new Div();
         card.setWidth("300px");
         card.getStyle()
-            .set("border-radius", "12px")
-            .set("padding", "2rem")
-            .set("background", "white")
-            .set("box-shadow", "0 4px 12px rgba(0,0,0,0.1)")
-            .set("text-align", "center")
-            .set("border-top", "4px solid " + color)
-            .set("transition", "transform 0.3s ease");
+                .set("border-radius", "12px")
+                .set("padding", "2rem")
+                .set("background", "white")
+                .set("box-shadow", "0 4px 12px rgba(0,0,0,0.1)")
+                .set("text-align", "center")
+                .set("border-top", "4px solid " + color)
+                .set("transition", "transform 0.3s ease");
 
         Icon icon = iconType.create();
         icon.setSize("48px");

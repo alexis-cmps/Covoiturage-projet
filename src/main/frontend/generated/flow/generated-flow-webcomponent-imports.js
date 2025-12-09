@@ -1,3 +1,15 @@
+import { injectGlobalCss } from 'Frontend/generated/jar-resources/theme-util.js';
+
+import { css, unsafeCSS, registerStyles } from '@vaadin/vaadin-themable-mixin';
+import $cssFromFile_0 from 'Frontend/styles/auth-view.css?inline';
+
+injectGlobalCss($cssFromFile_0.toString(), 'CSSImport end', document);
+import $cssFromFile_1 from 'Frontend/styles/dashboard-view.css?inline';
+
+injectGlobalCss($cssFromFile_1.toString(), 'CSSImport end', document);
+import $cssFromFile_2 from 'Frontend/styles/main-view.css?inline';
+
+injectGlobalCss($cssFromFile_2.toString(), 'CSSImport end', document);
 import '@vaadin/polymer-legacy-adapter/style-modules.js';
 import '@vaadin/vertical-layout/src/vaadin-vertical-layout.js';
 import '@vaadin/app-layout/src/vaadin-app-layout.js';

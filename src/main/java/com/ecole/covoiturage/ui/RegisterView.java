@@ -20,7 +20,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Route("register")
+@Route("old-register")
 @AnonymousAllowed
 public class RegisterView extends VerticalLayout {
 
@@ -38,10 +38,10 @@ public class RegisterView extends VerticalLayout {
         Div card = new Div();
         card.setWidth("450px");
         card.getStyle()
-            .set("background", "white")
-            .set("border-radius", "16px")
-            .set("padding", "2.5rem")
-            .set("box-shadow", "0 8px 32px rgba(0,0,0,0.2)");
+                .set("background", "white")
+                .set("border-radius", "16px")
+                .set("padding", "2.5rem")
+                .set("box-shadow", "0 8px 32px rgba(0,0,0,0.2)");
 
         H2 title = new H2("Créer un compte");
         title.addClassNames(LumoUtility.Margin.Top.NONE, LumoUtility.TextAlignment.CENTER);
@@ -80,8 +80,7 @@ public class RegisterView extends VerticalLayout {
                 studentService.register(
                         nameField.getValue(),
                         emailField.getValue(),
-                        passwordField.getValue()
-                );
+                        passwordField.getValue());
                 Notification notification = Notification.show("Compte créé avec succès");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 getUI().ifPresent(ui -> ui.navigate("login"));
