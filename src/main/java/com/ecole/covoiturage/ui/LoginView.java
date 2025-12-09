@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 
-@Route("login")
+@Route("old-login")
 @AnonymousAllowed
 public class LoginView extends VerticalLayout {
 
@@ -39,10 +39,10 @@ public class LoginView extends VerticalLayout {
         Div card = new Div();
         card.setWidth("400px");
         card.getStyle()
-            .set("background", "white")
-            .set("border-radius", "16px")
-            .set("padding", "2.5rem")
-            .set("box-shadow", "0 8px 32px rgba(0,0,0,0.2)");
+                .set("background", "white")
+                .set("border-radius", "16px")
+                .set("padding", "2.5rem")
+                .set("box-shadow", "0 8px 32px rgba(0,0,0,0.2)");
 
         H2 title = new H2("Connexion");
         title.getStyle().set("text-align", "center").set("margin-top", "0");
@@ -63,8 +63,8 @@ public class LoginView extends VerticalLayout {
             }
         });
 
-        loginForm.addForgotPasswordListener(event ->
-                Notification.show("Veuillez contacter l'administrateur pour reinitialiser votre mot de passe."));
+        loginForm.addForgotPasswordListener(event -> Notification
+                .show("Veuillez contacter l'administrateur pour reinitialiser votre mot de passe."));
 
         // Lien vers l'inscription
         Div registerSection = new Div();
