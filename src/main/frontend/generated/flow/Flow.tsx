@@ -15,23 +15,14 @@
  */
 /// <reference lib="es2018" />
 import { Flow as _Flow } from "Frontend/generated/jar-resources/Flow.js";
-import React, {
-    useCallback,
-    useEffect,
-    useReducer,
-    useRef,
-    useState,
-    type ReactNode
-} from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
     matchRoutes,
     useBlocker,
     useLocation,
-    useNavigate,
-    type NavigateOptions, useHref,
+    useNavigate
 } from "react-router-dom";
 import type { AgnosticRouteObject } from '@remix-run/router';
-import { createPortal } from "react-dom";
 
 const flow = new _Flow({
     imports: () => import("Frontend/generated/flow/generated-flow-imports.js")
@@ -153,16 +144,13 @@ function extractPath(event: MouseEvent): void | string {
  * @param search search of navigation
  */
 function fireNavigated(pathname:string, search: string) {
-    setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('vaadin-navigated', {
-                detail: {
-                    pathname,
-                    search
-                }
-            }));
-            // @ts-ignore
-            delete window.Vaadin.Flow.navigation;
-        }
+    setTimeout(() =>
+        window.dispatchEvent(new CustomEvent('vaadin-navigated', {
+            detail: {
+                pathname,
+                search
+            }
+        }))
     )
 }
 
@@ -173,97 +161,6 @@ const prevent = () => postpone;
 
 type RouterContainer = Awaited<ReturnType<typeof flow.serverSideRoutes[0]["action"]>>;
 
-type PortalEntry = {
-    readonly children: ReactNode,
-    readonly domNode: Element | DocumentFragment,
-};
-
-const enum PortalActionType {
-    Add = 'add',
-    Remove = 'remove',
-}
-
-type PortalAction = {
-    readonly type: PortalActionType,
-    readonly entry: PortalEntry,
-};
-
-function portalsReducer(portals: readonly PortalEntry[], action: PortalAction) {
-    switch (action.type) {
-        case PortalActionType.Add:
-            return [
-                ...portals,
-                action.entry
-            ];
-        case PortalActionType.Remove:
-            return portals.filter(({domNode}) => domNode !== action.entry.domNode);
-        default:
-            return portals;
-    }
-}
-
-
-type NavigateOpts =  {
-    to: string,
-    callback: boolean,
-    opts?: NavigateOptions
-};
-
-type NavigateFn = (to: string, callback: boolean, opts?: NavigateOptions) => void;
-
-/**
- * A hook providing the `navigate(path: string, opts?: NavigateOptions)` function
- * with React Router API that has more consistent history updates. Uses internal
- * queue for processing navigate calls.
- */
-function useQueuedNavigate(waitReference: React.MutableRefObject<Promise<void> | undefined>, navigated: React.MutableRefObject<boolean>): NavigateFn {
-    const navigate = useNavigate();
-    const navigateQueue = useRef<NavigateOpts[]>([]).current;
-    const [navigateQueueLength, setNavigateQueueLength] = useState(0);
-
-    const dequeueNavigation = useCallback(() => {
-        const navigateArgs = navigateQueue.shift();
-        if (navigateArgs === undefined) {
-            // Empty queue, do nothing.
-            return;
-        }
-
-        const blockingNavigate = async () => {
-            if (waitReference.current) {
-                await waitReference.current;
-                waitReference.current = undefined;
-            }
-            navigated.current = !navigateArgs.callback;
-            navigate(navigateArgs.to, navigateArgs.opts);
-            setNavigateQueueLength(navigateQueue.length);
-        }
-        blockingNavigate();
-    }, [navigate, setNavigateQueueLength]);
-
-    const dequeueNavigationAfterCurrentTask = useCallback(() => {
-        queueMicrotask(dequeueNavigation);
-    }, [dequeueNavigation]);
-
-    const enqueueNavigation = useCallback((to: string, callback: boolean, opts?: NavigateOptions) => {
-        navigateQueue.push({to: to, callback: callback, opts: opts});
-        setNavigateQueueLength(navigateQueue.length);
-        if (navigateQueue.length === 1) {
-            // The first navigation can be started right after any pending sync
-            // jobs, which could add more navigations to the queue.
-            dequeueNavigationAfterCurrentTask();
-        }
-    }, [setNavigateQueueLength, dequeueNavigationAfterCurrentTask]);
-
-    useEffect(() => () => {
-        // The Flow component has rendered, but history might not be
-        // updated yet, as React Router does it asynchronously.
-        // Use microtask callback for history consistency.
-        dequeueNavigationAfterCurrentTask();
-    }, [navigateQueueLength, dequeueNavigationAfterCurrentTask]);
-
-    return enqueueNavigation;
-}
-
 function Flow() {
     const ref = useRef<HTMLOutputElement>(null);
     const navigate = useNavigate();
@@ -271,29 +168,10 @@ function Flow() {
         navigated.current = navigated.current || (nextLocation.pathname === currentLocation.pathname && nextLocation.search === currentLocation.search && nextLocation.hash === currentLocation.hash);
         return true;
     });
-    const location = useLocation();
+    const {pathname, search, hash} = useLocation();
     const navigated = useRef<boolean>(false);
-    const blockerHandled = useRef<boolean>(false);
-    const fromAnchor = useRef<boolean>(false);
+
     const containerRef = useRef<RouterContainer | undefined>(undefined);
-    const roundTrip = useRef<Promise<void> | undefined>(undefined);
-    const queuedNavigate = useQueuedNavigate(roundTrip, navigated);
-    const basename = useHref('/');
-
-    // portalsReducer function is used as state outside the Flow component.
-    const [portals, dispatchPortalAction] = useReducer(portalsReducer, []);
-
-    const removePortalEventHandler = useCallback((event: CustomEvent<PortalEntry>) => {
-        event.preventDefault();
-        dispatchPortalAction({type: PortalActionType.Remove, entry: event.detail});
-    }, [dispatchPortalAction])
-
-    const addPortalEventHandler = useCallback((event: CustomEvent<PortalEntry>) => {
-        event.preventDefault();
-        // Add remove event listener to the portal node
-        event.detail.domNode.addEventListener('flow-portal-remove', removePortalEventHandler as EventListener, {once: true});
-        dispatchPortalAction({type: PortalActionType.Add, entry: event.detail});
-    }, [dispatchPortalAction, removePortalEventHandler]);
 
     const navigateEventHandler = useCallback((event: MouseEvent) => {
         const path = extractPath(event);
@@ -306,12 +184,7 @@ function Flow() {
         }
 
         navigated.current = false;
-        // When navigation is triggered by click on a link, fromAnchor is set to true
-        // in order to get a server round-trip even when navigating to the same URL again
-        fromAnchor.current = true;
         navigate(path);
-        // Dispatch close event for overlay drawer on click navigation.
-        window.dispatchEvent(new CustomEvent('close-overlay-drawer'));
     }, [navigate]);
 
     const vaadinRouterGoEventHandler = useCallback((event: CustomEvent<URL>) => {
@@ -325,12 +198,10 @@ function Flow() {
         navigate(path);
     }, [navigate]);
 
-    const vaadinNavigateEventHandler = useCallback((event: CustomEvent<{state: unknown, url: string, replace?: boolean, callback: boolean}>) => {
-        // @ts-ignore
-        window.Vaadin.Flow.navigation = true;
+    const vaadinNavigateEventHandler = useCallback((event: CustomEvent<{state: unknown, url: string, replace?: boolean}>) => {
         const path = '/' + event.detail.url;
-        fromAnchor.current = false;
-        queuedNavigate(path, event.detail.callback, { state: event.detail.state, replace: event.detail.replace });
+        navigated.current = !event.detail.replace;
+        navigate(path, { state: event.detail.state, replace: event.detail.replace});
     }, [navigate]);
 
     const redirect = useCallback((path: string) => {
@@ -356,55 +227,32 @@ function Flow() {
     useEffect(() => {
         return () => {
             containerRef.current?.parentNode?.removeChild(containerRef.current);
-            containerRef.current?.removeEventListener('flow-portal-add', addPortalEventHandler as EventListener);
             containerRef.current = undefined;
         };
     }, []);
 
     useEffect(() => {
         if (blocker.state === 'blocked') {
-            if(blockerHandled.current) {
-                // Blocker is handled and the new navigation
-                // gets queued to be executed after the current handling ends.
-                const {pathname, state} = blocker.location;
-                // Clear base name to not get /baseName/basename/path
-                const pathNoBase = pathname.substring(basename.length);
-                // path should always start with / else react-router will append to current url
-                queuedNavigate(pathNoBase.startsWith('/') ? pathNoBase : '/'+pathNoBase, true, { state: state, replace: true });
-                return;
-            }
-            blockerHandled.current = true;
-            let blockingPromise: any;
-            roundTrip.current = new Promise<void>((resolve,reject) => blockingPromise = {resolve:resolve,reject:reject});
-            // Release blocker handling after promise is fulfilled
-            roundTrip.current.then(() => blockerHandled.current = false, () => blockerHandled.current = false);
-
-            // Proceed to the blocked location, unless the navigation originates from a click on a link.
-            // In that case continue with function execution and perform a server round-trip
-            if (navigated.current && !fromAnchor.current) {
+            if(navigated.current) {
                 blocker.proceed();
-                blockingPromise.resolve();
                 return;
             }
-            fromAnchor.current = false;
             const {pathname, search} = blocker.location;
             const routes = ((window as any)?.Vaadin?.routesConfig || []) as AgnosticRouteObject[];
-            let matched = matchRoutes(Array.from(routes), pathname);
+            let matched = matchRoutes(Array.from(routes), window.location.pathname);
 
             // Navigation between server routes
             // @ts-ignore
             if (matched && matched.filter(path => path.route?.element?.type?.name === Flow.name).length != 0) {
                 containerRef.current?.onBeforeEnter?.call(containerRef?.current,
-                    {pathname, search}, {
+                    {pathname,search}, {
                         prevent() {
                             blocker.reset();
-                            blockingPromise.resolve();
                             navigated.current = false;
                         },
                         redirect,
                         continue() {
                             blocker.proceed();
-                            blockingPromise.resolve();
                         }
                     }, router);
                 navigated.current = true;
@@ -420,16 +268,15 @@ function Flow() {
                             containerRef.current.serverConnected = (cancel) => {
                                 if (cancel) {
                                     blocker.reset();
-                                    blockingPromise.resolve();
                                 } else {
                                     blocker.proceed();
-                                    blockingPromise.resolve();
+                                    window.removeEventListener('click',  navigateEventHandler);
                                 }
                             }
                         } else {
                             // permitted navigation: proceed with the blocker
                             blocker.proceed();
-                            blockingPromise.resolve();
+                            window.removeEventListener('click',  navigateEventHandler);
                         }
                     });
             }
@@ -437,37 +284,30 @@ function Flow() {
     }, [blocker.state, blocker.location]);
 
     useEffect(() => {
-        if (blocker.state === 'blocked') {
-            return;
-        }
-        if (navigated.current) {
+        if(navigated.current) {
             navigated.current = false;
-            fireNavigated(location.pathname,location.search);
+            fireNavigated(pathname,search);
             return;
         }
-        flow.serverSideRoutes[0].action({pathname: location.pathname, search: location.search})
+        flow.serverSideRoutes[0].action({pathname, search})
             .then((container) => {
                 const outlet = ref.current?.parentNode;
                 if (outlet && outlet !== container.parentNode) {
                     outlet.append(container);
-                    container.addEventListener('flow-portal-add', addPortalEventHandler as EventListener);
                     window.addEventListener('click',  navigateEventHandler);
                     containerRef.current = container
                 }
-                return container.onBeforeEnter?.call(container, {pathname: location.pathname, search: location.search}, {prevent, redirect, continue() {
-                        fireNavigated(location.pathname,location.search);}}, router);
+                return container.onBeforeEnter?.call(container, {pathname, search}, {prevent, redirect, continue() {
+                        fireNavigated(pathname,search);}}, router);
             })
             .then((result: unknown) => {
                 if (typeof result === "function") {
                     result();
                 }
             });
-    }, [location]);
+    }, [pathname, search, hash]);
 
-    return <>
-        <output ref={ref} style={{display: "none"}}/>
-        {portals.map(({children, domNode}) => createPortal(children, domNode))}
-    </>;
+    return <output ref={ref} />;
 }
 Flow.type = 'FlowContainer'; // This is for copilot to recognize this
 

@@ -14,16 +14,7 @@
  * the License.
  */
 import {createRoot, Root} from "react-dom/client";
-import {
-    createElement,
-    type Dispatch,
-    type ReactElement,
-    type ReactNode,
-    Ref,
-    useEffect,
-    useReducer,
-    useRef
-} from "react";
+import {createElement, type Dispatch, type ReactElement, useReducer} from "react";
 
 type FlowStateKeyChangedAction<K extends string, V> = Readonly<{
     type: 'stateKeyChanged',
@@ -89,32 +80,7 @@ export type RenderHooks = {
      * @protected
      */
     readonly useCustomEvent: ReactAdapterElement["useCustomEvent"]
-
-    /**
-     * A hook helper to generate the content element with name attribute to bind
-     * the server-side Flow element for this component.
-     *
-     * This is used together with {@link ReactAdapterComponent::getContentElement}
-     * to have server-side component attach to the correct client element.
-     *
-     * Usage as follows:
-     *
-     * const content = hooks.useContent('content');
-     * return <>
-     *             {content}
-     * </>;
-     *
-     * Note! Not adding the 'content' element into the dom will have the
-     * server throw a IllegalStateException for element with tag name not found.
-     *
-     * @param name - The name attribute of the element
-     */
-    readonly useContent:  ReactAdapterElement["useContent"]
 };
-
-interface ReadyCallbackFunction {
-    (): void;
-}
 
 /**
  * A base class for Web Components that render using React. Enables creating
@@ -124,14 +90,11 @@ interface ReadyCallbackFunction {
 export abstract class ReactAdapterElement extends HTMLElement {
     #root: Root | undefined = undefined;
     #rootRendered: boolean = false;
-    #rendering: ReactNode | undefined = undefined;
 
     #state: Record<string, unknown> = Object.create(null);
     #stateSetters = new Map<string, Dispatch<unknown>>();
     #customEvents = new Map<string, DispatchEvent<unknown>>();
     #dispatchFlowState: Dispatch<FlowStateReducerAction> = emptyAction;
-
-    #readyCallback = new Map<string, ReadyCallbackFunction>();
 
     readonly #renderHooks: RenderHooks;
 
@@ -143,8 +106,7 @@ export abstract class ReactAdapterElement extends HTMLElement {
         super();
         this.#renderHooks = {
             useState: this.useState.bind(this),
-            useCustomEvent: this.useCustomEvent.bind(this),
-            useContent: this.useContent.bind(this)
+            useCustomEvent: this.useCustomEvent.bind(this)
         };
         this.#Wrapper = this.#renderWrapper.bind(this);
         this.#markAsUsed();
@@ -152,56 +114,16 @@ export abstract class ReactAdapterElement extends HTMLElement {
 
     public async connectedCallback() {
         await this.#unmountComplete;
-        this.#rendering = createElement(this.#Wrapper);
-        const createNewRoot = this.dispatchEvent(new CustomEvent('flow-portal-add', {
-            bubbles: true,
-            cancelable: true,
-            composed: true,
-            detail: {
-                children: this.#rendering,
-                domNode: this,
-            }
-        }));
-
-        if (!createNewRoot || this.#root) {
-            return;
-        }
-
         this.#root = createRoot(this);
         this.#maybeRenderRoot();
-        this.#root.render(this.#rendering);
-    }
-
-    /**
-     * Add a callback for specified element identifier to be called when
-     * react element is ready.
-     * <p>
-     * For internal use only. May be renamed or removed in a future release.
-     *
-     * @param id element identifier that callback is for
-     * @param readyCallback callback method to be informed on element ready state
-     * @internal
-     */
-    public addReadyCallback(id: string, readyCallback: ReadyCallbackFunction) {
-        this.#readyCallback.set(id, readyCallback);
     }
 
     public async disconnectedCallback() {
-        this.dispatchEvent(new CustomEvent('flow-portal-remove', {
-            bubbles: true,
-            cancelable: true,
-            composed: true,
-            detail: {
-                children: this.#rendering,
-                domNode: this,
-            }
-        }));
         this.#unmountComplete = Promise.resolve();
         await this.#unmountComplete;
         this.#root?.unmount();
         this.#root = undefined;
         this.#rootRendered = false;
-        this.#rendering = undefined;
     }
 
     /**
@@ -285,19 +207,6 @@ export abstract class ReactAdapterElement extends HTMLElement {
      */
     protected abstract render(hooks: RenderHooks): ReactElement | null;
 
-    /**
-     * Prepare content container for Flow to bind server Element to.
-     *
-     * @param name container name attribute matching server name attribute
-     * @protected
-     */
-    protected useContent(name: string): ReactElement | null {
-        useEffect(() => {
-            this.#readyCallback.get(name)?.();
-        }, []);
-        return createElement('flow-content-container', {name, style: {display: 'contents'}});
-    }
-
     #maybeRenderRoot() {
         if (this.#rootRendered || !this.#root) {
             return;
@@ -322,7 +231,7 @@ export abstract class ReactAdapterElement extends HTMLElement {
             vaadinObject.registrations = vaadinObject.registrations || [];
             vaadinObject.registrations.push({
                 is: 'ReactAdapterElement',
-                version: '24.6.2'
+                version: '24.4.4'
             });
         }
     }

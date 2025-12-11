@@ -5,6 +5,7 @@ import com.ecole.covoiturage.dto.StudentDTO;
 import com.ecole.covoiturage.dto.StudentRegistrationDTO;
 import com.ecole.covoiturage.entity.Student;
 import com.ecole.covoiturage.mapper.StudentMapper;
+import com.ecole.covoiturage.service.EmailService;
 import com.ecole.covoiturage.service.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,12 @@ public class AuthController {
 
     private final StudentService studentService;
     private final StudentMapper studentMapper;
+    private final EmailService emailService;
 
-    public AuthController(StudentService studentService, StudentMapper studentMapper) {
+    public AuthController(StudentService studentService, StudentMapper studentMapper, EmailService emailService) {
         this.studentService = studentService;
         this.studentMapper = studentMapper;
+        this.emailService = emailService;
     }
 
     @PostMapping("/register")
@@ -36,6 +39,14 @@ public class AuthController {
                     registrationDTO.getPassword()
             );
             StudentDTO studentDTO = studentMapper.toDTO(student);
+
+            // Envoyer l'email de bienvenue
+            try {
+                emailService.sendWelcomeEmail(student.getEmail(), student.getName());
+            } catch (Exception e) {
+                // Log l'erreur mais ne bloque pas l'inscription
+                System.err.println("Erreur lors de l'envoi de l'email de bienvenue: " + e.getMessage());
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Inscription réussie");
